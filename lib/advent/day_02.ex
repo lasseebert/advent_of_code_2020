@@ -19,26 +19,62 @@ defmodule Advent.Day02 do
   In the above example, 2 passwords are valid. The middle password, cdefg, is not; it contains no instances of b, but needs at least 1. The first and third passwords are valid: they contain one a or nine c, both within the limits of their respective policies.
 
   How many passwords are valid according to their policies?
+
+  --- Part Two ---
+  While it appears you validated the passwords correctly, they don't seem to be what the Official Toboggan Corporate Authentication System is expecting.
+
+  The shopkeeper suddenly realizes that he just accidentally explained the password policy rules from his old job at the sled rental place down the street! The Official Toboggan Corporate Policy actually works a little differently.
+
+  Each policy actually describes two positions in the password, where 1 means the first character, 2 means the second character, and so on. (Be careful; Toboggan Corporate Policies have no concept of "index zero"!) Exactly one of these positions must contain the given letter. Other occurrences of the letter are irrelevant for the purposes of policy enforcement.
+
+  Given the same example list from above:
+
+  1-3 a: abcde is valid: position 1 contains a and position 3 does not.
+  1-3 b: cdefg is invalid: neither position 1 nor position 3 contains b.
+  2-9 c: ccccccccc is invalid: both position 2 and position 9 contain c.
+  How many passwords are valid according to the new interpretation of the policies?
   """
 
   @doc """
   Part 1
   """
-  @spec count_valid_passwords(String.t()) :: non_neg_integer
-  def count_valid_passwords(input) do
+  @spec count_valid_passwords_part_1(String.t()) :: non_neg_integer
+  def count_valid_passwords_part_1(input) do
     input
     |> parse()
-    |> Enum.count(&valid_password?/1)
+    |> Enum.count(&valid_password_part_1?/1)
   end
 
-  defp valid_password?({range, char, password}) do
+  @doc """
+  Part 2
+  """
+  @spec count_valid_passwords_part_2(String.t()) :: non_neg_integer
+  def count_valid_passwords_part_2(input) do
+    input
+    |> parse()
+    |> Enum.count(&valid_password_part_2?/1)
+  end
+
+  defp valid_password_part_1?({num_1, num_2, char, password}) do
     count =
       password
       |> String.graphemes()
       |> Enum.filter(&(&1 == char))
       |> length()
 
-    count in range
+    count in num_1..num_2
+  end
+
+  defp valid_password_part_2?({num_1, num_2, char, password}) do
+    count =
+      [
+        String.at(password, num_1 - 1),
+        String.at(password, num_2 - 1)
+      ]
+      |> Enum.filter(&(&1 == char))
+      |> length()
+
+    count == 1
   end
 
   defp parse(input) do
@@ -47,9 +83,9 @@ defmodule Advent.Day02 do
     |> String.split("\n", trim: true)
     |> Enum.map(fn line ->
       [policy, password] = String.split(line, ": ")
-      [range_string, policy_char] = String.split(policy, " ")
-      [range_start, range_end] = range_string |> String.split("-") |> Enum.map(&String.to_integer/1)
-      {range_start..range_end, policy_char, password}
+      [number_string, policy_char] = String.split(policy, " ")
+      [num_1, num_2] = number_string |> String.split("-") |> Enum.map(&String.to_integer/1)
+      {num_1, num_2, policy_char, password}
     end)
   end
 end
