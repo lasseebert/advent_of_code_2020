@@ -28,4 +28,30 @@ defmodule Advent.Day03Test do
              |> Day03.count_trees() == 191
     end
   end
+
+  describe "part 2" do
+    test "example" do
+      input = """
+      ..##.......
+      #...#...#..
+      .#....#..#.
+      ..#.#...#.#
+      .#...##..#.
+      ..#.##.....
+      .#.#.#....#
+      .#........#
+      #.##...#...
+      #...##....#
+      .#..#...#.#
+      """
+
+      assert Day03.count_trees_multi(input) == 336
+    end
+
+    test "puzzle input" do
+      assert "puzzle_inputs/day_03.txt"
+             |> File.read!()
+             |> Day03.count_trees_multi() == 1_478_615_040
+    end
+  end
 end
