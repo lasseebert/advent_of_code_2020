@@ -37,6 +37,15 @@ defmodule Advent.Day05 do
   FFFBBBFRRR: row 14, column 7, seat ID 119.
   BBFFBBFRLL: row 102, column 4, seat ID 820.
   As a sanity check, look through your list of boarding passes. What is the highest seat ID on a boarding pass?
+
+  --- Part Two ---
+  Ding! The "fasten seat belt" signs have turned on. Time to find your seat.
+
+  It's a completely full flight, so your seat should be the only missing boarding pass in your list. However, there's a catch: some of the seats at the very front and back of the plane don't exist on this aircraft, so they'll be missing from your list as well.
+
+  Your seat wasn't at the very front or back, though; the seats with IDs +1 and -1 from yours will be in your list.
+
+  What is the ID of your seat?
   """
 
   @doc """
@@ -56,6 +65,11 @@ defmodule Advent.Day05 do
   def part_2(input) do
     input
     |> parse()
+    |> Enum.sort()
+    |> Enum.chunk_every(2)
+    |> Enum.filter(fn [a, b] -> a + 2 == b end)
+    |> Enum.map(fn [a, _b] -> a + 1 end)
+    |> hd()
   end
 
   defp parse(input) do
