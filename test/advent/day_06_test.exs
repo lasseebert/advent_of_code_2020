@@ -4,19 +4,32 @@ defmodule Advent.Day06Test do
   alias Advent.Day06
 
   describe "part 1" do
-    @tag :skip
     test "example" do
       input = """
+      abc
+
+      a
+      b
+      c
+
+      ab
+      ac
+
+      a
+      a
+      a
+      a
+
+      b
       """
 
-      assert Day06.part_1(input) == :foo
+      assert Day06.part_1(input) == 11
     end
 
-    @tag :skip
     test "puzzle input" do
       assert "puzzle_inputs/day_06.txt"
              |> File.read!()
-             |> Day06.part_1() == :foo
+             |> Day06.part_1() == 6714
     end
   end
 
