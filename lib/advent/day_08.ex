@@ -123,13 +123,13 @@ defmodule Advent.Day08 do
   def part_2(input) do
     program = parse(input)
 
-    # Note: This could be faster if we stop early on hit
-    Enum.flat_map(program, fn
-      {_index, {:acc, _value}} -> []
+    program
+    |> Stream.map(fn
+      {_index, {:acc, _value}} -> nil
       {index, {:nop, value}} -> %{program | index => {:jmp, value}} |> try_program()
       {index, {:jmp, value}} -> %{program | index => {:nop, value}} |> try_program()
     end)
-    |> hd()
+    |> Enum.find(& &1)
   end
 
   defp try_program(program) do
@@ -146,8 +146,8 @@ defmodule Advent.Day08 do
 
   defp try_runtime(runtime) do
     cond do
-      runtime.pointer == runtime.length -> [runtime.acc]
-      runtime.pointer in runtime.seen -> []
+      runtime.pointer == runtime.length -> runtime.acc
+      runtime.pointer in runtime.seen -> nil
       true -> runtime |> step() |> try_runtime()
     end
   end
