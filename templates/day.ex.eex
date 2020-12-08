@@ -1,4 +1,4 @@
-defmodule Advent.Day18 do
+defmodule Advent.Day<%= day %> do
   @moduledoc """
   """
 
@@ -22,5 +22,7 @@ defmodule Advent.Day18 do
 
   defp parse(input) do
     input
+    |> String.trim()
+    |> String.split("\n", trim: true)
   end
 end
