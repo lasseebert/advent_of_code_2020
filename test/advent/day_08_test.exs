@@ -28,19 +28,26 @@ defmodule Advent.Day08Test do
   end
 
   describe "part 2" do
-    @tag :skip
     test "example" do
       input = """
+      nop +0
+      acc +1
+      jmp +4
+      acc +3
+      jmp -3
+      acc -99
+      acc +1
+      jmp -4
+      acc +6
       """
 
-      assert Day08.part_2(input) == :foo
+      assert Day08.part_2(input) == 8
     end
 
-    @tag :skip
     test "puzzle input" do
       assert "puzzle_inputs/day_08.txt"
              |> File.read!()
-             |> Day08.part_2() == :foo
+             |> Day08.part_2() == 761
     end
   end
 end
