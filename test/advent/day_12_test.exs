@@ -24,19 +24,22 @@ defmodule Advent.Day12Test do
   end
 
   describe "part 2" do
-    @tag :skip
     test "example" do
       input = """
+      F10
+      N3
+      F7
+      R90
+      F11
       """
 
-      assert Day12.part_2(input) == :foo
+      assert Day12.part_2(input) == 286
     end
 
-    @tag :skip
     test "puzzle input" do
       assert "puzzle_inputs/day_12.txt"
              |> File.read!()
-             |> Day12.part_2() == :foo
+             |> Day12.part_2() == 29_839
     end
   end
 end

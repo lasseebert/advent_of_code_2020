@@ -40,6 +40,25 @@ defmodule Advent.Day12 do
   def part_2(input) do
     input
     |> parse()
+    |> Enum.reduce({{0, 0}, {10, 1}}, &step_waypoint/2)
+    |> elem(0)
+    |> manhattan_distance_to_origin()
+  end
+
+  defp step_waypoint({:north, value}, {pos, {wx, wy}}), do: {pos, {wx, wy + value}}
+  defp step_waypoint({:south, value}, {pos, {wx, wy}}), do: {pos, {wx, wy - value}}
+  defp step_waypoint({:east, value}, {pos, {wx, wy}}), do: {pos, {wx + value, wy}}
+  defp step_waypoint({:west, value}, {pos, {wx, wy}}), do: {pos, {wx - value, wy}}
+
+  defp step_waypoint({:forward, value}, {{x, y}, {wx, wy}}), do: {{x + wx * value, y + wy * value}, {wx, wy}}
+
+  defp step_waypoint({:left, value}, state), do: step_waypoint({:right, 360 - value}, state)
+  defp step_waypoint({:right, 0}, state), do: state
+  defp step_waypoint({:right, 90}, {{x, y}, {wx, wy}}), do: {{x, y}, {wy, wx * -1}}
+
+  defp step_waypoint({:right, value}, state) when value > 90 do
+    state = step_waypoint({:right, 90}, state)
+    step_waypoint({:right, value - 90}, state)
   end
 
   defp parse(input) do
