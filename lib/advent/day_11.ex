@@ -27,18 +27,7 @@ defmodule Advent.Day11 do
 
     points
     |> Enum.into(%{}, fn point ->
-      neighbours =
-        @directions
-        |> Enum.flat_map(fn dir ->
-          neighbour = add(dir, point)
-
-          if neighbour in points do
-            [neighbour]
-          else
-            []
-          end
-        end)
-
+      neighbours = Enum.map(@directions, &add(point, &1)) |> Enum.filter(&(&1 in points))
       {point, neighbours}
     end)
   end
@@ -64,15 +53,7 @@ defmodule Advent.Day11 do
 
     points
     |> Enum.into(%{}, fn point ->
-      neighbours =
-        @directions
-        |> Enum.flat_map(fn dir ->
-          case distance_neighbour_for_point(points, point, dir, max_x, max_y) do
-            {:ok, neighbour} -> [neighbour]
-            :error -> []
-          end
-        end)
-
+      neighbours = Enum.flat_map(@directions, &distance_neighbour_for_point(points, point, &1, max_x, max_y))
       {point, neighbours}
     end)
   end
@@ -81,8 +62,8 @@ defmodule Advent.Day11 do
     {x, y} = new_point = add(point, dir)
 
     cond do
-      new_point in points -> {:ok, new_point}
-      x > max_x or x < 0 or y > max_y or y < 0 -> :error
+      new_point in points -> [new_point]
+      x > max_x or x < 0 or y > max_y or y < 0 -> []
       true -> distance_neighbour_for_point(points, new_point, dir, max_x, max_y)
     end
   end
