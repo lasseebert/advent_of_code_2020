@@ -8,7 +8,8 @@ defmodule Advent.MixProject do
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+      dialyzer: dialyzer()
     ]
   end
 
@@ -30,6 +31,12 @@ defmodule Advent.MixProject do
   defp aliases do
     [
       compile: ["compile --warnings-as-errors"]
+    ]
+  end
+
+  defp dialyzer do
+    [
+      plt_add_apps: [:eex, :mix]
     ]
   end
 end
