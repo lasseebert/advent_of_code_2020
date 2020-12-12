@@ -12,6 +12,7 @@ defmodule Mix.Tasks.Advent.Gen.Day do
     day = parse_args!(args)
 
     [
+      {"templates/puzzle_text.txt.eex", "puzzle_texts/day_#{day}.txt"},
       {"templates/puzzle_input.txt.eex", "puzzle_inputs/day_#{day}.txt"},
       {"templates/day.ex.eex", "lib/advent/day_#{day}.ex"},
       {"templates/day_test.exs.eex", "test/advent/day_#{day}_test.exs"}
