@@ -38,33 +38,33 @@ defmodule Advent.Day13 do
       # This is the same as "On the timestamp of the first bus, bus 41 departed 34 minutes ago (and will depart in 7)"
       # Now we just have to find the first N that satisfy all the bus lines
       remainder = rem(rem(bus_id - index, bus_id) + bus_id, bus_id)
-      {bus_id, {remainder, bus_id}}
+      {bus_id, remainder}
     end)
     |> Enum.reduce(&merge/2)
-    |> (fn {_bus_id, {time, _inc}} -> time end).()
+    |> (fn {_bus_id, time} -> time end).()
   end
 
   # Merge two bus lines into a single (new) bus line that is satisfied only when both the two inputs are
-  defp merge({bus_id_1, {time_1, inc_1}}, {bus_id_2, {time_2, inc_2}}) do
+  defp merge({bus_id_1, time_1}, {bus_id_2, time_2}) do
     cond do
       # We're done searching. We found the first time where both bus lines depart
       # The new bus line will have id equal to least common multiple of the two and a modulo remainder equal to the
       # found time
       time_1 == time_2 ->
         merged_bus_id = lcm(bus_id_1, bus_id_2)
-        {merged_bus_id, {time_1, merged_bus_id}}
+        {merged_bus_id, time_1}
 
       # Timestamp 1 is too low. Increment it so that it is at least timestamp 2 and repeat
       time_1 < time_2 ->
         diff = time_2 - time_1
-        new_time = (div(diff - 1, inc_1) + 1) * inc_1 + time_1
-        merge({bus_id_1, {new_time, inc_1}}, {bus_id_2, {time_2, inc_2}})
+        new_time = (div(diff - 1, bus_id_1) + 1) * bus_id_1 + time_1
+        merge({bus_id_1, new_time}, {bus_id_2, time_2})
 
       # Timestamp 2 is too low. Increment it so that it is at least timestamp 1 and repeat
       time_1 > time_2 ->
         diff = time_1 - time_2
-        new_time = (div(diff - 1, inc_2) + 1) * inc_2 + time_2
-        merge({bus_id_1, {time_1, inc_1}}, {bus_id_2, {new_time, inc_2}})
+        new_time = (div(diff - 1, bus_id_2) + 1) * bus_id_2 + time_2
+        merge({bus_id_1, time_1}, {bus_id_2, new_time})
     end
   end
 
