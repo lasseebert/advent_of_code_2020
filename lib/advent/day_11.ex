@@ -15,10 +15,10 @@ defmodule Advent.Day11 do
   @spec part_1(String.t()) :: integer
   def part_1(input) do
     seats = parse(input)
-    neighbours = seats |> Map.keys() |> precalc_neighbours()
+    neighbour_map = seats |> Map.keys() |> precalc_neighbours()
 
     seats
-    |> step_until_no_change(neighbours, 4)
+    |> step_until_no_change(neighbour_map, 4)
     |> Enum.count(fn {_pos, state} -> state == :occupied end)
   end
 
@@ -27,7 +27,11 @@ defmodule Advent.Day11 do
 
     points
     |> Enum.into(%{}, fn point ->
-      neighbours = Enum.map(@directions, &add(point, &1)) |> Enum.filter(&(&1 in points))
+      neighbours =
+        @directions
+        |> Enum.map(&add(point, &1))
+        |> Enum.filter(&(&1 in points))
+
       {point, neighbours}
     end)
   end
@@ -38,10 +42,10 @@ defmodule Advent.Day11 do
   @spec part_2(String.t()) :: integer
   def part_2(input) do
     seats = parse(input)
-    neighbours = seats |> Map.keys() |> precalc_distance_neighbours()
+    neighbour_map = seats |> Map.keys() |> precalc_distance_neighbours()
 
     seats
-    |> step_until_no_change(neighbours, 5)
+    |> step_until_no_change(neighbour_map, 5)
     |> Enum.count(fn {_pos, state} -> state == :occupied end)
   end
 
@@ -53,7 +57,10 @@ defmodule Advent.Day11 do
 
     points
     |> Enum.into(%{}, fn point ->
-      neighbours = Enum.flat_map(@directions, &distance_neighbour_for_point(points, point, &1, max_x, max_y))
+      neighbours =
+        @directions
+        |> Enum.flat_map(&distance_neighbour_for_point(points, point, &1, max_x, max_y))
+
       {point, neighbours}
     end)
   end
@@ -86,33 +93,39 @@ defmodule Advent.Day11 do
     end)
   end
 
-  defp step_until_no_change(seats, neighbours, threshold) do
-    new_seats = step(seats, neighbours, threshold)
+  defp step_until_no_change(seats, neighbour_map, threshold) do
+    recalc = seats |> Map.keys()
+    step_until_no_change(seats, recalc, neighbour_map, threshold)
+  end
 
-    if new_seats == seats do
-      seats
+  defp step_until_no_change(seats, recalc, neighbour_map, threshold) do
+    {new_seats, recalc} = step(seats, recalc, neighbour_map, threshold)
+    recalc = recalc |> List.flatten() |> Enum.uniq()
+
+    if Enum.any?(recalc) do
+      step_until_no_change(new_seats, recalc, neighbour_map, threshold)
     else
-      step_until_no_change(new_seats, neighbours, threshold)
+      seats
     end
   end
 
-  defp step(seats, neighbours, threshold) do
-    seats
-    |> Enum.into(%{}, fn {pos, state} ->
+  defp step(seats, recalc, neighbour_map, threshold) do
+    recalc
+    |> Enum.reduce({seats, []}, fn pos, {new_seats, recalc} ->
+      state = Map.fetch!(seats, pos)
+
+      neighbours = Map.fetch!(neighbour_map, pos)
+
       count =
         neighbours
-        |> Map.fetch!(pos)
         |> Enum.map(&Map.fetch!(seats, &1))
         |> Enum.count(&(&1 == :occupied))
 
-      new_state =
-        case {state, count} do
-          {:empty, 0} -> :occupied
-          {:occupied, n} when n >= threshold -> :empty
-          {state, _n} -> state
-        end
-
-      {pos, new_state}
+      case {state, count} do
+        {:empty, 0} -> {Map.put(new_seats, pos, :occupied), [neighbours | recalc]}
+        {:occupied, n} when n >= threshold -> {Map.put(new_seats, pos, :empty), [neighbours | recalc]}
+        {_state, _n} -> {new_seats, recalc}
+      end
     end)
   end
 
