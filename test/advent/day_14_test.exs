@@ -23,19 +23,21 @@ defmodule Advent.Day14Test do
   end
 
   describe "part 2" do
-    @tag :skip
     test "example" do
       input = """
+      mask = 000000000000000000000000000000X1001X
+      mem[42] = 100
+      mask = 00000000000000000000000000000000X0XX
+      mem[26] = 1
       """
 
-      assert Day14.part_2(input) == :foo
+      assert Day14.part_2(input) == 208
     end
 
-    @tag :skip
     test "puzzle input" do
       assert "puzzle_inputs/day_14.txt"
              |> File.read!()
-             |> Day14.part_2() == :foo
+             |> Day14.part_2() == 4_832_039_794_082
     end
   end
 end
