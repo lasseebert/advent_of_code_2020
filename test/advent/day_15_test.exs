@@ -38,19 +38,36 @@ defmodule Advent.Day15Test do
   end
 
   describe "part 2" do
-    @tag :skip
-    test "example" do
-      input = """
-      """
-
-      assert Day15.part_2(input) == :foo
+    test "example 1" do
+      assert Day15.part_2("0,3,6") == 175594
     end
 
-    @tag :skip
+    test "example 2" do
+      assert Day15.part_2("1,3,2") == 2578
+    end
+
+    test "example 3" do
+      assert Day15.part_2("2,1,3") == 3544142
+    end
+
+    test "example 4" do
+      assert Day15.part_2("1,2,3") == 261214
+    end
+
+    test "example 5" do
+      assert Day15.part_2("2,3,1") == 6895259
+    end
+
+    test "example 6" do
+      assert Day15.part_2("3,2,1") == 18
+    end
+
+    test "example 7" do
+      assert Day15.part_2("3,1,2") == 362
+    end
+
     test "puzzle input" do
-      assert "puzzle_inputs/day_15.txt"
-             |> File.read!()
-             |> Day15.part_2() == :foo
+      assert Day15.part_2("1,17,0,10,18,11,6") == :foo
     end
   end
 end

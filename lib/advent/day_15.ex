@@ -8,8 +8,25 @@ defmodule Advent.Day15 do
   """
   @spec part_1(String.t()) :: integer
   def part_1(input) do
-    starting_numbers = parse(input)
+    input
+    |> parse()
+    |> stream()
+    |> Enum.at(2019)
+  end
 
+  @doc """
+  Part 2
+  Unoptimized. Runs in ~47 seconds on my machine
+  """
+  @spec part_2(String.t()) :: integer
+  def part_2(input) do
+    input
+    |> parse()
+    |> stream()
+    |> Enum.at(29_999_999)
+  end
+
+  defp stream(starting_numbers) do
     Stream.unfold({nil, starting_numbers, 0, %{}}, fn {last, starting_numbers, index, seen} ->
       {num, starting_numbers} =
         case starting_numbers do
@@ -25,16 +42,6 @@ defmodule Advent.Day15 do
 
       {num, {num, starting_numbers, index + 1, Map.update(seen, num, [index], &[index | &1])}}
     end)
-    |> Enum.at(2019)
-  end
-
-  @doc """
-  Part 2
-  """
-  @spec part_2(String.t()) :: integer
-  def part_2(input) do
-    input
-    |> parse()
   end
 
   defp parse(input) do
