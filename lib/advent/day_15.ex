@@ -33,14 +33,14 @@ defmodule Advent.Day15 do
           [] ->
             case Map.fetch!(seen, last) do
               [_] -> {0, []}
-              [a, b | _] -> {a - b, []}
+              [a, b] -> {a - b, []}
             end
 
           [num | starting_numbers] ->
             {num, starting_numbers}
         end
 
-      {num, {num, starting_numbers, index + 1, Map.update(seen, num, [index], &[index | &1])}}
+      {num, {num, starting_numbers, index + 1, Map.update(seen, num, [index], fn [last | _] -> [index, last] end)}}
     end)
   end
 
