@@ -67,7 +67,7 @@ defmodule Advent.Day15Test do
     end
 
     test "puzzle input" do
-      assert Day15.part_2("1,17,0,10,18,11,6") == 1708310
+      assert Day15.part_2("1,17,0,10,18,11,6") == 1_708_310
     end
   end
 end
