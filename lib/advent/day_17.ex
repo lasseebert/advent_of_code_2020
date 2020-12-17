@@ -10,6 +10,19 @@ defmodule Advent.Day17 do
   def part_1(input) do
     input
     |> parse()
+    |> Enum.map(fn {x, y} -> {x, y, 0} end)
+    |> step_count(6)
+    |> Enum.count()
+  end
+
+  @doc """
+  Part 2
+  """
+  @spec part_2(String.t()) :: integer
+  def part_2(input) do
+    input
+    |> parse()
+    |> Enum.map(fn {x, y} -> {x, y, 0, 0} end)
     |> step_count(6)
     |> Enum.count()
   end
@@ -51,22 +64,23 @@ defmodule Advent.Day17 do
         zn <- [z - 1, z, z + 1],
         {xn, yn, zn} != {x, y, z} do
       {xn, yn, zn}
-        end
+    end
+  end
+
+  defp neighbours({x, y, z, w}) do
+    for xn <- [x - 1, x, x + 1],
+        yn <- [y - 1, y, y + 1],
+        zn <- [z - 1, z, z + 1],
+        wn <- [w - 1, w, w + 1],
+        {xn, yn, zn, wn} != {x, y, z, w} do
+      {xn, yn, zn, wn}
+    end
   end
 
   defp num_active_neighbours(node, map) do
     node
     |> neighbours()
-    |> Enum.count(& &1 in map)
-  end
-
-  @doc """
-  Part 2
-  """
-  @spec part_2(String.t()) :: integer
-  def part_2(input) do
-    input
-    |> parse()
+    |> Enum.count(&(&1 in map))
   end
 
   defp parse(input) do
@@ -79,7 +93,7 @@ defmodule Advent.Day17 do
       |> String.graphemes()
       |> Enum.with_index()
       |> Enum.filter(&(elem(&1, 0) == "#"))
-      |> Enum.reduce(map, fn {_char, x}, map -> MapSet.put(map, {x, y, 0}) end)
+      |> Enum.reduce(map, fn {_char, x}, map -> MapSet.put(map, {x, y}) end)
     end)
   end
 end

@@ -22,19 +22,20 @@ defmodule Advent.Day17Test do
   end
 
   describe "part 2" do
-    @tag :skip
     test "example" do
       input = """
+      .#.
+      ..#
+      ###
       """
 
-      assert Day17.part_2(input) == :foo
+      assert Day17.part_2(input) == 848
     end
 
-    @tag :skip
     test "puzzle input" do
       assert "puzzle_inputs/day_17.txt"
              |> File.read!()
-             |> Day17.part_2() == :foo
+             |> Day17.part_2() == 1520
     end
   end
 end
