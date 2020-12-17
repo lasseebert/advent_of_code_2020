@@ -8,11 +8,7 @@ defmodule Advent.Day17 do
   """
   @spec part_1(String.t()) :: integer
   def part_1(input) do
-    input
-    |> parse()
-    |> Enum.map(fn {x, y} -> {x, y, 0} end)
-    |> step_count(6)
-    |> Enum.count()
+    solve(input, fn {x, y} -> {x, y, 0} end)
   end
 
   @doc """
@@ -20,42 +16,29 @@ defmodule Advent.Day17 do
   """
   @spec part_2(String.t()) :: integer
   def part_2(input) do
+    solve(input, fn {x, y} -> {x, y, 0, 0} end)
+  end
+
+  defp solve(input, dimension_mapper) do
     input
-    |> parse()
-    |> Enum.map(fn {x, y} -> {x, y, 0, 0} end)
-    |> step_count(6)
+    |> parse(dimension_mapper)
+    |> Stream.iterate(&step/1)
+    |> Enum.at(6)
     |> Enum.count()
   end
 
-  defp step_count(map, 0), do: map
-  defp step_count(map, count), do: map |> step() |> step_count(count - 1)
-
   defp step(map) do
-    existing_nodes =
-      map
-      |> Enum.flat_map(fn node ->
-        case num_active_neighbours(node, map) do
-          n when n in [2, 3] -> [node]
-          _ -> []
-        end
-      end)
-
-    new_nodes =
-      map
-      |> Enum.flat_map(&neighbours(&1))
-      |> Enum.uniq()
-      |> Enum.reject(&(&1 in map))
-      |> Enum.flat_map(fn node ->
-        case num_active_neighbours(node, map) do
-          3 -> [node]
-          _ -> []
-        end
-      end)
-
-    [existing_nodes, new_nodes]
-    |> Stream.concat()
-    |> Enum.to_list()
-    |> Enum.reduce(MapSet.new(), &MapSet.put(&2, &1))
+    map
+    |> Enum.flat_map(&neighbours(&1))
+    |> Enum.uniq()
+    |> Enum.filter(fn node ->
+      case {node in map, num_active_neighbours(node, map)} do
+        {true, n} when n in [2, 3] -> true
+        {false, 3} -> true
+        _ -> false
+      end
+    end)
+    |> MapSet.new()
   end
 
   defp neighbours({x, y, z}) do
@@ -83,7 +66,7 @@ defmodule Advent.Day17 do
     |> Enum.count(&(&1 in map))
   end
 
-  defp parse(input) do
+  defp parse(input, dimension_mapper) do
     input
     |> String.trim()
     |> String.split("\n", trim: true)
@@ -93,7 +76,10 @@ defmodule Advent.Day17 do
       |> String.graphemes()
       |> Enum.with_index()
       |> Enum.filter(&(elem(&1, 0) == "#"))
-      |> Enum.reduce(map, fn {_char, x}, map -> MapSet.put(map, {x, y}) end)
+      |> Enum.reduce(map, fn {_char, x}, map ->
+        node = dimension_mapper.({x, y})
+        MapSet.put(map, node)
+      end)
     end)
   end
 end
