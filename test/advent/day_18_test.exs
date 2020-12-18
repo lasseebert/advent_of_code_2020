@@ -36,19 +36,34 @@ defmodule Advent.Day18Test do
   end
 
   describe "part 2" do
-    @tag :skip
-    test "example" do
-      input = """
-      """
-
-      assert Day18.part_2(input) == :foo
+    test "example 1" do
+      assert Day18.part_2("1 + 2 * 3 + 4 * 5 + 6") == 231
     end
 
-    @tag :skip
+    test "example 2" do
+      assert Day18.part_2("1 + (2 * 3) + (4 * (5 + 6))") == 51
+    end
+
+    test "example 3" do
+      assert Day18.part_2("2 * 3 + (4 * 5)") == 46
+    end
+
+    test "example 4" do
+      assert Day18.part_2("5 + (8 * 3 + 9 + 3 * 4 * 3)") == 1445
+    end
+
+    test "example 5" do
+      assert Day18.part_2("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))") == 669_060
+    end
+
+    test "example 6" do
+      assert Day18.part_2("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2") == 23_340
+    end
+
     test "puzzle input" do
       assert "puzzle_inputs/day_18.txt"
              |> File.read!()
-             |> Day18.part_2() == :foo
+             |> Day18.part_2() == 321_176_691_637_769
     end
   end
 end

@@ -10,13 +10,28 @@ defmodule Advent.Day18 do
   def part_1(input) do
     input
     |> parse()
-    |> Enum.map(&evaluate/1)
+    |> Enum.map(fn tokens ->
+      tokens
+      |> build_expression()
+      |> evaluate()
+    end)
     |> Enum.sum()
   end
 
-  defp evaluate({:+, a, b}), do: evaluate(a) + evaluate(b)
-  defp evaluate({:*, a, b}), do: evaluate(a) * evaluate(b)
-  defp evaluate(num) when is_integer(num), do: num
+  defp build_expression(tokens) do
+    {postfix, ops} = Enum.reduce(tokens, {[], []}, &build_postfix(&1, &2))
+
+    (Enum.reverse(postfix) ++ ops)
+    |> build_tree([])
+  end
+
+  defp build_postfix(:+, {output, [:* | op_stack]}), do: build_postfix(:+, {[:* | output], op_stack})
+  defp build_postfix(:+, {output, op_stack}), do: {output, [:+ | op_stack]}
+  defp build_postfix(:*, {output, [:+ | op_stack]}), do: build_postfix(:*, {[:+ | output], op_stack})
+  defp build_postfix(:*, {output, op_stack}), do: {output, [:* | op_stack]}
+  defp build_postfix({:int, num}, {output, op_stack}), do: {[{:int, num} | output], op_stack}
+  defp build_postfix(:left_paren, {output, op_stack}), do: {output, [:left_paren | op_stack]}
+  defp build_postfix(:right_paren, {output, op_stack}), do: pop_to_left_paren(output, op_stack)
 
   @doc """
   Part 2
@@ -25,20 +40,36 @@ defmodule Advent.Day18 do
   def part_2(input) do
     input
     |> parse()
+    |> Enum.map(fn tokens ->
+      tokens
+      |> build_expression_v2()
+      |> evaluate()
+    end)
+    |> Enum.sum()
   end
+
+  defp build_expression_v2(tokens) do
+    {postfix, ops} = Enum.reduce(tokens, {[], []}, &build_postfix_v2(&1, &2))
+
+    (Enum.reverse(postfix) ++ ops)
+    |> build_tree([])
+  end
+
+  defp build_postfix_v2(:+, {output, op_stack}), do: {output, [:+ | op_stack]}
+  defp build_postfix_v2(:*, {output, [:+ | op_stack]}), do: build_postfix_v2(:*, {[:+ | output], op_stack})
+  defp build_postfix_v2(:*, {output, op_stack}), do: {output, [:* | op_stack]}
+  defp build_postfix_v2({:int, num}, {output, op_stack}), do: {[{:int, num} | output], op_stack}
+  defp build_postfix_v2(:left_paren, {output, op_stack}), do: {output, [:left_paren | op_stack]}
+  defp build_postfix_v2(:right_paren, {output, op_stack}), do: pop_to_left_paren(output, op_stack)
+
+  defp pop_to_left_paren(output, [:left_paren | op_stack]), do: {output, op_stack}
+  defp pop_to_left_paren(output, [op | op_stack]), do: pop_to_left_paren([op | output], op_stack)
 
   defp parse(input) do
     input
     |> String.trim()
     |> String.split("\n", trim: true)
-    |> Enum.map(fn line ->
-      {expr, []} =
-        line
-        |> tokenize()
-        |> build_expression(nil, nil)
-
-      expr
-    end)
+    |> Enum.map(&tokenize/1)
   end
 
   defp tokenize(expression) do
@@ -50,29 +81,18 @@ defmodule Advent.Day18 do
       ")" -> :right_paren
       "+" -> :+
       "*" -> :*
-      num -> String.to_integer(num)
+      num -> {:int, String.to_integer(num)}
     end)
   end
 
-  # Done state, return expression (and no leftover tokens)
-  defp build_expression([], expr, nil), do: {expr, []}
+  defp evaluate({:+, a, b}), do: evaluate(a) + evaluate(b)
+  defp evaluate({:*, a, b}), do: evaluate(a) * evaluate(b)
+  defp evaluate({:int, num}), do: num
 
-  # We already have an expression and now got an operator
-  defp build_expression([op | tokens], expr, nil) when op in [:+, :*], do: build_expression(tokens, expr, op)
+  # Convert postfix list to expression tree
+  defp build_tree([], [expr]), do: expr
+  defp build_tree([:+ | tokens], [a, b | stack]), do: build_tree(tokens, [{:+, a, b} | stack])
+  defp build_tree([:* | tokens], [a, b | stack]), do: build_tree(tokens, [{:*, a, b} | stack])
+  defp build_tree([{:int, num} | tokens], stack), do: build_tree(tokens, [{:int, num} | stack])
 
-  # Start a new call stack on left_parent. This call stack will end on right paren
-  defp build_expression([:left_paren | tokens], expr, op) do
-    {inner_expr, tokens} = build_expression(tokens, nil, nil)
-    build_expression([inner_expr | tokens], expr, op)
-  end
-
-  # End inner call stack and also return leftover tokens
-  defp build_expression([:right_paren | tokens], expr, nil), do: {expr, tokens}
-
-  # We have to expressions and an operator. Combine them into one expression
-  defp build_expression([expr_1 | tokens], expr_2, op) when op in [:+, :*],
-    do: build_expression([{op, expr_2, expr_1} | tokens], nil, nil)
-
-  # We have a single expression, just put it on the stack
-  defp build_expression([expr | tokens], nil, nil), do: build_expression(tokens, expr, nil)
 end
