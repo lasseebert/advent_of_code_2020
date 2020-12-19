@@ -33,13 +33,13 @@ defmodule Advent.Day19 do
     {:ok, ""} in results
   end
 
-  defp match_rule(num, string, grammar, indent \\ 0) do
+  defp match_rule(num, string, grammar) do
     grammar
     |> Map.fetch!(num)
-    |> Enum.flat_map(&match_expression(&1, string, grammar, indent + 1))
+    |> Enum.flat_map(&match_expression(&1, string, grammar))
   end
 
-  defp match_expression([{:literal, literal_char}], string, _grammar, _indent) do
+  defp match_expression([{:literal, literal_char}], string, _grammar) do
     if String.starts_with?(string, literal_char) do
       [ok: String.slice(string, 1..-1)]
     else
@@ -47,12 +47,12 @@ defmodule Advent.Day19 do
     end
   end
 
-  defp match_expression([], string, _grammar, _indent), do: [{:ok, string}]
+  defp match_expression([], string, _grammar), do: [{:ok, string}]
 
-  defp match_expression([{:rule, rule_num} | rules], string, grammar, indent) do
+  defp match_expression([{:rule, rule_num} | rules], string, grammar) do
     rule_num
-    |> match_rule(string, grammar, indent)
-    |> Enum.flat_map(fn {:ok, string} -> match_expression(rules, string, grammar, indent) end)
+    |> match_rule(string, grammar)
+    |> Enum.flat_map(fn {:ok, string} -> match_expression(rules, string, grammar) end)
   end
 
   defp parse(input) do
