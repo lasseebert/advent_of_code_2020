@@ -30,7 +30,7 @@ defmodule Advent.Day19 do
 
   defp valid_string?(string, grammar) do
     results = match_rule(0, string, grammar)
-    {:ok, ""} in results
+    "" in results
   end
 
   defp match_rule(num, string, grammar) do
@@ -41,18 +41,18 @@ defmodule Advent.Day19 do
 
   defp match_expression([{:literal, literal_char}], string, _grammar) do
     if String.starts_with?(string, literal_char) do
-      [ok: String.slice(string, 1..-1)]
+      [String.slice(string, 1..-1)]
     else
       []
     end
   end
 
-  defp match_expression([], string, _grammar), do: [{:ok, string}]
+  defp match_expression([], string, _grammar), do: [string]
 
   defp match_expression([{:rule, rule_num} | rules], string, grammar) do
     rule_num
     |> match_rule(string, grammar)
-    |> Enum.flat_map(fn {:ok, string} -> match_expression(rules, string, grammar) end)
+    |> Enum.flat_map(&match_expression(rules, &1, grammar))
   end
 
   defp parse(input) do
