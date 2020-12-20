@@ -8,6 +8,84 @@ defmodule Advent.Day20 do
   """
   @spec part_1(String.t()) :: integer
   def part_1(input) do
+    puzzle = lay_puzzle(input)
+
+    max = puzzle |> Map.keys() |> Enum.map(&elem(&1, 0)) |> Enum.max()
+
+    [{0, 0}, {0, max}, {max, 0}, {max, max}]
+    |> Enum.map(&Map.fetch!(puzzle, &1))
+    |> Enum.map(&elem(&1, 0))
+    |> Enum.reduce(&Kernel.*/2)
+  end
+
+  @doc """
+  Part 2
+  """
+  @spec part_2(String.t()) :: integer
+  def part_2(input) do
+    input
+    |> lay_puzzle()
+    |> assemble()
+    |> permutations()
+    |> Enum.map(&count_non_dragons/1)
+    |> Enum.reject(&(&1 == :here_not_be_dragons))
+    |> hd()
+  end
+
+  defp count_non_dragons(image) do
+    # 01234567890123456789
+    #                   X
+    # X    XX    XX    XXX
+    #  X  X  X  X  X  X
+    dragon = [
+      {18, -1},
+      {0, 0},
+      {5, 0},
+      {6, 0},
+      {11, 0},
+      {12, 0},
+      {17, 0},
+      {18, 0},
+      {19, 0},
+      {1, 1},
+      {4, 1},
+      {7, 1},
+      {10, 1},
+      {13, 1},
+      {16, 1}
+    ]
+
+    dragon_coords =
+      image
+      |> Enum.flat_map(fn {x, y} ->
+        this_dragon = Enum.map(dragon, fn {dx, dy} -> {x + dx, y + dy} end)
+
+        if Enum.all?(this_dragon, &(&1 in image)) do
+          this_dragon
+        else
+          []
+        end
+      end)
+
+    if dragon_coords == [] do
+      :here_not_be_dragons
+    else
+      length(image -- dragon_coords)
+    end
+  end
+
+  defp assemble(puzzle) do
+    small_size = puzzle |> Map.values() |> hd() |> elem(1) |> Enum.map(&elem(&1, 0)) |> Enum.max() |> Kernel.+(1)
+
+    puzzle
+    |> Enum.flat_map(fn {{px, py}, {_id, image, _edges}} ->
+      image
+      |> Enum.reject(fn {ix, iy} -> ix == 0 or iy == 0 or ix == small_size - 1 or iy == small_size - 1 end)
+      |> Enum.map(fn {ix, iy} -> {ix - 1 + (small_size - 2) * px, iy - 1 + (small_size - 2) * py} end)
+    end)
+  end
+
+  defp lay_puzzle(input) do
     pieces = parse(input)
     big_image_size = pieces |> length() |> :math.sqrt() |> trunc()
 
@@ -36,11 +114,7 @@ defmodule Advent.Day20 do
 
     [puzzle | rest] = lay_puzzle(big_image_coordinates, %{}, pieces)
     7 = length(rest)
-
-    [{0, 0}, {0, big_image_size - 1}, {big_image_size - 1, 0}, {big_image_size - 1, big_image_size - 1}]
-    |> Enum.map(&Map.fetch!(puzzle, &1))
-    |> Enum.map(&elem(&1, 0))
-    |> Enum.reduce(&Kernel.*/2)
+    puzzle
   end
 
   defp lay_puzzle([], puzzle, []), do: [puzzle]
@@ -120,15 +194,6 @@ defmodule Advent.Day20 do
 
   defp top_edge(image) do
     image |> Enum.filter(fn {_x, y} -> y == 0 end) |> Enum.map(&elem(&1, 0)) |> Enum.sort()
-  end
-
-  @doc """
-  Part 2
-  """
-  @spec part_2(String.t()) :: integer
-  def part_2(input) do
-    input
-    |> parse()
   end
 
   defp parse(input) do
