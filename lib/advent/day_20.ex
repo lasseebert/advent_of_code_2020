@@ -23,6 +23,16 @@ defmodule Advent.Day20 do
         permutations = permutations(image)
         {id, permutations}
       end)
+      # Precalc edges of all permiutations
+      |> Enum.map(fn {id, permutations} ->
+        permutations =
+          Enum.map(
+            permutations,
+            &{&1, %{top: top_edge(&1), left: left_edge(&1), bottom: bottom_edge(&1), right: right_edge(&1)}}
+          )
+
+        {id, permutations}
+      end)
 
     [puzzle | rest] = lay_puzzle(big_image_coordinates, %{}, pieces)
     7 = length(rest)
@@ -38,9 +48,9 @@ defmodule Advent.Day20 do
   defp lay_puzzle([coord | coords], puzzle, pieces) do
     coord
     |> find_matching_pieces(puzzle, pieces)
-    |> Enum.flat_map(fn {found_id, _image} = piece ->
+    |> Enum.flat_map(fn {found_id, _image, _edges} = piece ->
       puzzle = Map.put(puzzle, coord, piece)
-      pieces = Enum.reject(pieces, fn {id, _image} -> id == found_id end)
+      pieces = Enum.reject(pieces, fn {id, _permutations} -> id == found_id end)
       lay_puzzle(coords, puzzle, pieces)
     end)
   end
@@ -48,23 +58,25 @@ defmodule Advent.Day20 do
   defp find_matching_pieces({x, y}, puzzle, pieces) do
     left_edge =
       case Map.fetch(puzzle, {x - 1, y}) do
-        {:ok, piece} -> right_edge(piece)
+        {:ok, {_id, _image, edges}} -> edges.right
         :error -> nil
       end
 
     top_edge =
       case Map.fetch(puzzle, {x, y - 1}) do
-        {:ok, piece} -> bottom_edge(piece)
+        {:ok, {_id, _image, edges}} -> edges.bottom
         :error -> nil
       end
 
     pieces
-    |> Enum.flat_map(fn {id, permutations} -> Enum.map(permutations, &{id, &1}) end)
+    |> Enum.flat_map(fn {id, permutations} ->
+      Enum.map(permutations, fn {perm, edges} -> {id, perm, edges} end)
+    end)
     |> Enum.filter(&matching_piece?(&1, left_edge, top_edge))
   end
 
-  defp matching_piece?(piece, left_edge, top_edge) do
-    (left_edge == nil or left_edge(piece) == left_edge) and (top_edge == nil or top_edge(piece) == top_edge)
+  defp matching_piece?({_id, _image, edges}, left_edge, top_edge) do
+    (left_edge == nil or edges.left == left_edge) and (top_edge == nil or edges.top == top_edge)
   end
 
   defp permutations(image) do
@@ -92,21 +104,21 @@ defmodule Advent.Day20 do
     Enum.map(image, fn {x, y} -> {max_x - x, y} end)
   end
 
-  defp right_edge({_id, image}) do
+  defp right_edge(image) do
     max_x = image |> Enum.map(&elem(&1, 0)) |> Enum.max()
     image |> Enum.filter(fn {x, _y} -> x == max_x end) |> Enum.map(&elem(&1, 1)) |> Enum.sort()
   end
 
-  defp bottom_edge({_id, image}) do
+  defp bottom_edge(image) do
     max_y = image |> Enum.map(&elem(&1, 1)) |> Enum.max()
     image |> Enum.filter(fn {_x, y} -> y == max_y end) |> Enum.map(&elem(&1, 0)) |> Enum.sort()
   end
 
-  defp left_edge({_id, image}) do
+  defp left_edge(image) do
     image |> Enum.filter(fn {x, _y} -> x == 0 end) |> Enum.map(&elem(&1, 1)) |> Enum.sort()
   end
 
-  defp top_edge({_id, image}) do
+  defp top_edge(image) do
     image |> Enum.filter(fn {_x, y} -> y == 0 end) |> Enum.map(&elem(&1, 0)) |> Enum.sort()
   end
 
