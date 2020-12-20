@@ -8,9 +8,8 @@ defmodule Advent.Day20 do
   """
   @spec part_1(String.t()) :: integer
   def part_1(input) do
-    images = parse(input)
-    num_images = length(images)
-    big_image_size = :math.sqrt(num_images) |> trunc()
+    pieces = parse(input)
+    big_image_size = pieces |> length() |> :math.sqrt() |> trunc()
 
     big_image_coordinates =
       for y <- 0..(big_image_size - 1),
@@ -18,7 +17,14 @@ defmodule Advent.Day20 do
         {x, y}
       end
 
-    [puzzle | rest] = lay_puzzle(big_image_coordinates, %{}, images)
+    # Precalc permutations of each piece for performance
+    pieces =
+      Enum.map(pieces, fn {id, image} ->
+        permutations = permutations(image)
+        {id, permutations}
+      end)
+
+    [puzzle | rest] = lay_puzzle(big_image_coordinates, %{}, pieces)
     7 = length(rest)
 
     [{0, 0}, {0, big_image_size - 1}, {big_image_size - 1, 0}, {big_image_size - 1, big_image_size - 1}]
@@ -53,7 +59,7 @@ defmodule Advent.Day20 do
       end
 
     pieces
-    |> Enum.flat_map(&permutations/1)
+    |> Enum.flat_map(fn {id, permutations} -> Enum.map(permutations, &{id, &1}) end)
     |> Enum.filter(&matching_piece?(&1, left_edge, top_edge))
   end
 
@@ -61,29 +67,29 @@ defmodule Advent.Day20 do
     (left_edge == nil or left_edge(piece) == left_edge) and (top_edge == nil or top_edge(piece) == top_edge)
   end
 
-  defp permutations(piece) do
-    p1 = piece
-    p2 = rotate(p1)
-    p3 = rotate(p2)
-    p4 = rotate(p3)
-    p5 = flip(p1)
-    p6 = rotate(p5)
-    p7 = rotate(p6)
-    p8 = rotate(p7)
-    [p1, p2, p3, p4, p5, p6, p7, p8]
+  defp permutations(image) do
+    i1 = image
+    i2 = rotate(i1)
+    i3 = rotate(i2)
+    i4 = rotate(i3)
+    i5 = flip(i1)
+    i6 = rotate(i5)
+    i7 = rotate(i6)
+    i8 = rotate(i7)
+    [i1, i2, i3, i4, i5, i6, i7, i8]
   end
 
-  defp rotate(piece) do
-    piece |> transpose() |> flip()
+  defp rotate(image) do
+    image |> transpose() |> flip()
   end
 
-  defp transpose({id, image}) do
-    {id, Enum.map(image, fn {x, y} -> {y, x} end)}
+  defp transpose(image) do
+    Enum.map(image, fn {x, y} -> {y, x} end)
   end
 
-  defp flip({id, image}) do
+  defp flip(image) do
     max_x = image |> Enum.map(&elem(&1, 0)) |> Enum.max()
-    {id, Enum.map(image, fn {x, y} -> {max_x - x, y} end)}
+    Enum.map(image, fn {x, y} -> {max_x - x, y} end)
   end
 
   defp right_edge({_id, image}) do
