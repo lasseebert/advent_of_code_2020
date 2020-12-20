@@ -94,5 +94,4 @@ defmodule Advent.Day18 do
   defp build_tree([:+ | tokens], [a, b | stack]), do: build_tree(tokens, [{:+, a, b} | stack])
   defp build_tree([:* | tokens], [a, b | stack]), do: build_tree(tokens, [{:*, a, b} | stack])
   defp build_tree([{:int, num} | tokens], stack), do: build_tree(tokens, [{:int, num} | stack])
-
 end
