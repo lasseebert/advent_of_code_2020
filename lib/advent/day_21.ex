@@ -18,27 +18,6 @@ defmodule Advent.Day21 do
     |> Enum.sum()
   end
 
-  defp safe_ingredients(food_list) do
-    allergen_to_foods =
-      food_list
-      |> Enum.flat_map(fn {food, allergens} -> Enum.map(allergens, &{&1, food}) end)
-      |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
-
-    with_allergens =
-      food_list
-      |> Enum.flat_map(fn {food, allergens} ->
-        Enum.filter(food, fn ingredient ->
-          Enum.any?(allergens, fn allergen ->
-            allergen_to_foods |> Map.fetch!(allergen) |> Enum.all?(&(ingredient in &1))
-          end)
-        end)
-      end)
-      |> Enum.uniq()
-
-    ingredients = food_list |> Enum.flat_map(&elem(&1, 0)) |> Enum.uniq()
-    ingredients -- with_allergens
-  end
-
   @doc """
   Part 2
   """
@@ -72,6 +51,27 @@ defmodule Advent.Day21 do
     |> Enum.sort_by(&elem(&1, 1))
     |> Enum.map(&elem(&1, 0))
     |> Enum.join(",")
+  end
+
+  defp safe_ingredients(food_list) do
+    allergen_to_foods =
+      food_list
+      |> Enum.flat_map(fn {food, allergens} -> Enum.map(allergens, &{&1, food}) end)
+      |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+
+    with_allergens =
+      food_list
+      |> Enum.flat_map(fn {food, allergens} ->
+        Enum.filter(food, fn ingredient ->
+          Enum.any?(allergens, fn allergen ->
+            allergen_to_foods |> Map.fetch!(allergen) |> Enum.all?(&(ingredient in &1))
+          end)
+        end)
+      end)
+      |> Enum.uniq()
+
+    ingredients = food_list |> Enum.flat_map(&elem(&1, 0)) |> Enum.uniq()
+    ingredients -- with_allergens
   end
 
   defp match([], [], acc, list, _candidates) do
