@@ -15,11 +15,11 @@ defmodule Advent.Day23Test do
 
   describe "part 2" do
     test "example" do
-      assert Day23.part_2("389125467") == "149245887792"
+      assert Day23.part_2("389125467") == 149245887792
     end
 
     test "puzzle input" do
-      assert Day23.part_2("158937462") == :foo
+      assert Day23.part_2("158937462") == 96604396189
     end
   end
 end
