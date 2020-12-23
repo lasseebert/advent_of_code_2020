@@ -6,44 +6,126 @@ defmodule Advent.Day23 do
   @doc """
   Part 1
   """
-  @spec part_1(String.t()) :: integer
+  @spec part_1(String.t()) :: String.t()
   def part_1(input) do
     input
     |> parse()
-    |> Stream.iterate(&play_round/1)
+    |> play()
     |> Enum.at(100)
-    |> result()
+    |> result_1()
   end
 
-  defp play_round(cups) do
-    [current | cups] = cups
-    {selected, cups} = Enum.split(cups, 3)
-    destination = find_destination(cups, current - 1)
-    {split_1, [destination | split_2]} = Enum.split_while(cups, &(&1 != destination))
-    split_1 ++ [destination] ++ selected ++ split_2 ++ [current]
+  defp result_1({l1, [1 | l2]}) do
+    (l2 ++ Enum.reverse(l1))
+    |> Enum.join()
   end
 
-  defp find_destination(cups, 0), do: find_destination(cups, 9)
+  defp result_1(cups) do
+    {first, cups} = pop_front(cups)
 
-  defp find_destination(cups, target) do
     cups
-    |> Enum.find(&(&1 == target))
-    |> case do
-      nil -> find_destination(cups, target - 1)
-      destination -> destination
-    end
+    |> push_rear(first)
+    |> result_1()
   end
-
-  defp result([1 | cups]), do: cups |> Enum.join() |> String.to_integer()
-  defp result([first | cups]), do: result(cups ++ [first])
 
   @doc """
   Part 2
   """
-  @spec part_2(String.t()) :: integer
+  @spec part_2(String.t()) :: String.t()
   def part_2(input) do
-    input
-    |> parse()
+    (parse(input) ++ Enum.to_list(10..1_000_000))
+    |> play()
+    |> Enum.at(10_000_000)
+    |> result_2()
+  end
+
+  defp play(cups) do
+    max = Enum.max(cups)
+    zipper = {[], cups}
+
+    Stream.iterate(zipper, &play_round(&1, max))
+  end
+
+  defp result_2({_, [1 | _]} = cups) do
+    {1, cups} = pop_front(cups)
+    {a, cups} = pop_front(cups)
+    {b, _cups} = pop_front(cups)
+    [a, b] |> Enum.join()
+  end
+
+  defp result_2(cups) do
+    IO.inspect(cups, label: "cups in result_2")
+    {front, cups} = pop_front(cups)
+
+    cups
+    |> push_rear(front)
+    |> result_2()
+  end
+
+  defp play_round(cups, max) do
+    {current, cups} = pop_front(cups)
+
+    {a, cups} = pop_front(cups)
+    {b, cups} = pop_front(cups)
+    {c, cups} = pop_front(cups)
+    selected = [a, b, c]
+
+    destination = find_destination(current - 1, selected, max)
+    cups = insert_after(cups, destination, selected)
+    cups = push_rear(cups, current)
+    cups
+
+    # [current | cups] = cups
+    # {selected, cups} = Enum.split(cups, 3)
+    # destination = find_destination(cups, current - 1)
+    # {split_1, [destination | split_2]} = Enum.split_while(cups, &(&1 != destination))
+    # split_1 ++ [destination] ++ selected ++ split_2 ++ [current]
+  end
+
+  defp find_destination(0, selected, max), do: find_destination(max, selected, max)
+
+  defp find_destination(target, selected, max) do
+    if target in selected do
+      find_destination(target - 1, selected -- [target], max)
+    else
+      target
+    end
+  end
+
+  defp pop_front({l1, [front | l2]}), do: {front, {l1, l2}}
+  defp pop_front({l1, []}), do: pop_front({[], Enum.reverse(l1)})
+
+  defp push_rear({l1, l2}, item), do: {[item | l1], l2}
+
+  defp insert_after({l1, l2}, destination, items) do
+    case insert_after_front(l2, destination, items, []) do
+      {:ok, l2} ->
+        {l1, l2}
+
+      :error ->
+        l1 = insert_after_rear(l1, destination, items, [])
+        {l1, l2}
+    end
+  end
+
+  defp insert_after_front([], _destination, _items, _acc), do: :error
+
+  defp insert_after_front([destination | list], destination, items, acc) do
+    list = [destination | items] ++ list
+    {:ok, Enum.reverse(acc) ++ list}
+  end
+
+  defp insert_after_front([first | list], destination, items, acc) do
+    insert_after_front(list, destination, items, [first | acc])
+  end
+
+  defp insert_after_rear([destination | list], destination, items, acc) do
+    list = Enum.reverse([destination | items]) ++ list
+    Enum.reverse(acc) ++ list
+  end
+
+  defp insert_after_rear([first | list], destination, items, acc) do
+    insert_after_rear(list, destination, items, [first | acc])
   end
 
   defp parse(input) do
