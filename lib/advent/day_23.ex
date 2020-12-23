@@ -15,11 +15,6 @@ defmodule Advent.Day23 do
     |> result_1()
   end
 
-  defp result_1({l1, [1 | l2]}) do
-    (l2 ++ Enum.reverse(l1))
-    |> Enum.join()
-  end
-
   defp result_1({cups, _current}) do
     {cups, 1}
     |> Stream.unfold(fn {cups, current} ->
