@@ -9,15 +9,7 @@ defmodule Advent.Day24 do
   @spec part_1(String.t()) :: integer
   def part_1(input) do
     input
-    |> parse()
-    |> Enum.reduce(MapSet.new(), fn path, map ->
-      tile = walk(path, {0, 0})
-      if tile in map do
-        MapSet.delete(map, tile)
-      else
-        MapSet.put(map, tile)
-      end
-    end)
+    |> init()
     |> Enum.count()
   end
 
@@ -27,7 +19,24 @@ defmodule Advent.Day24 do
   @spec part_2(String.t()) :: integer
   def part_2(input) do
     input
+    |> init()
+    |> Stream.iterate(&day/1)
+    |> Enum.at(100)
+    |> Enum.count()
+  end
+
+  defp init(input) do
+    input
     |> parse()
+    |> Enum.reduce(MapSet.new(), fn path, map ->
+      tile = walk(path, {0, 0})
+
+      if tile in map do
+        MapSet.delete(map, tile)
+      else
+        MapSet.put(map, tile)
+      end
+    end)
   end
 
   defp walk(path, pos) do
@@ -40,6 +49,27 @@ defmodule Advent.Day24 do
   defp step(:w, {x, y}), do: {x - 1, y}
   defp step(:nw, {x, y}), do: {x - 1, y + 1}
   defp step(:sw, {x, y}), do: {x, y - 1}
+
+  defp day(map) do
+    map
+    |> Enum.flat_map(&neighbours/1)
+    |> Enum.uniq()
+    |> Enum.filter(fn pos ->
+      neighbour_count = pos |> neighbours() |> Enum.count(&(&1 in map))
+
+      if pos in map do
+        neighbour_count in [1, 2]
+      else
+        neighbour_count == 2
+      end
+    end)
+    |> MapSet.new()
+  end
+
+  defp neighbours(pos) do
+    [:e, :ne, :se, :w, :nw, :sw]
+    |> Enum.map(&step(&1, pos))
+  end
 
   defp parse(input) do
     input
